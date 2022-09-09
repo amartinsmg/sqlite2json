@@ -21,7 +21,9 @@ if __name__ == '__main__':
     i = 1
     while i < len(argv):
         s = argv[i]
-        if s == '-o':
+        if re.search('.db$', s):
+            db_path = s
+        elif s == '-o':
             i += 1
             out_file = argv[i]
         elif s == '-q':
@@ -32,8 +34,6 @@ if __name__ == '__main__':
             table = argv[i]
         elif s == '-h':
             print_help()
-        elif re.search('.db$', s):
-            db_path = s
         i += 1
 
     if (query == '' and table == '') or db_path == '':
@@ -48,16 +48,17 @@ if __name__ == '__main__':
     db = sqlite3.Connection(db_path)
     cur = db.cursor()
     cur.execute(query)
-    col_name = tuple([t[0] for t in cur.description])
+    cols_name = tuple([t[0] for t in cur.description])
     data = cur.fetchall()
     db.close()
     data_formatted = []
 
-    for element in data:
-        element_dict = {}
-        for i in range(0, 8):
-            element_dict[col_name[i]] = element[i]
-        data_formatted.append(element_dict)
+    for row in data:
+        row_dict = {}
+        for i in range(len(cols_name)):
+            if row[i] != None:
+                row_dict[cols_name[i]] = row[i]
+        data_formatted.append(row_dict)
 
     json_object = json.dumps(data_formatted, indent=4)
     json_file = open(out_file, 'w+')
