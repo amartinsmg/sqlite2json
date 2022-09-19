@@ -56,7 +56,7 @@ if __name__ == '__main__':
     for row in data:
         row_dict = {}
         for i in range(len(cols_name)):
-            if row[i] != None:
+            if row[i] is not None:
                 row_dict[cols_name[i]] = row[i]
         data_formatted.append(row_dict)
 
