@@ -13,6 +13,29 @@ def print_help():
     exit(0)
 
 
+def db2json(db_path: str, query: str):
+
+    db = sqlite3.Connection(db_path)
+    cur = db.cursor()
+    cur.execute(query)
+    cols_name = tuple([t[0] for t in cur.description])
+    data = cur.fetchall()
+    db.close()
+    data_formatted = []
+
+    for row in data:
+        row_dict = {}
+        for i in range(len(cols_name)):
+            if row[i] is not None:
+                row_dict[cols_name[i]] = row[i]
+        data_formatted.append(row_dict)
+
+    json_object = json.dumps(data_formatted, indent=4)
+    json_file = open(out_file, 'w+')
+    json_file.write(json_object)
+    json_file.close()
+
+
 if __name__ == '__main__':
     if len(argv) == 1:
         print_help()
@@ -45,22 +68,4 @@ if __name__ == '__main__':
     if out_file == '':
         out_file = 'output.json'
 
-    db = sqlite3.Connection(db_path)
-    cur = db.cursor()
-    cur.execute(query)
-    cols_name = tuple([t[0] for t in cur.description])
-    data = cur.fetchall()
-    db.close()
-    data_formatted = []
-
-    for row in data:
-        row_dict = {}
-        for i in range(len(cols_name)):
-            if row[i] is not None:
-                row_dict[cols_name[i]] = row[i]
-        data_formatted.append(row_dict)
-
-    json_object = json.dumps(data_formatted, indent=4)
-    json_file = open(out_file, 'w+')
-    json_file.write(json_object)
-    json_file.close()
+    db2json(db_path, query)
