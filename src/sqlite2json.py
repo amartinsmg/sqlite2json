@@ -13,7 +13,7 @@ def print_help():
     exit(0)
 
 
-def db2json(db_path: str, query: str):
+def db2json(db_path: str, out_file: str, query: str):
 
     db = sqlite3.Connection(db_path)
     cur = db.cursor()
@@ -68,4 +68,4 @@ if __name__ == '__main__':
     if out_file == '':
         out_file = 'output.json'
 
-    db2json(db_path, query)
+    db2json(db_path, out_file, query)
