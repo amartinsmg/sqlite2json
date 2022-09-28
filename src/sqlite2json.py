@@ -13,34 +13,30 @@ def print_help():
     exit(0)
 
 
-def db2json(db_path: str, out_file: str, query: str):
+def db2json(db_path: str, query: str) -> str:
     try:
         db = sqlite3.Connection(db_path)
     except Exception as e:
-        print('Connection to database failed:', e)
+        raise f'Connection to database failed: {e}'
     else:
-        cur = db.cursor()
-        cur.execute(query)
-        cols_name = tuple([t[0] for t in cur.description])
-        data = cur.fetchall()
-        db.close()
-        data_formatted = []
-
-        for row in data:
-            row_dict = {}
-            for i in range(len(cols_name)):
-                if row[i] is not None:
-                    row_dict[cols_name[i]] = row[i]
-            data_formatted.append(row_dict)
-
-        json_object = json.dumps(data_formatted, indent=4)
         try:
-            json_file = open(out_file, 'w+')
+            cur = db.cursor()
+            cur.execute(query)
         except Exception as e:
-            print('Could not open the JSON file:', str(e))
+            raise f'Database Query failed: {e}'
         else:
-            json_file.write(json_object)
-            json_file.close()
+            cols_name = tuple([t[0] for t in cur.description])
+            data = cur.fetchall()
+            data_formatted = []
+            for row in data:
+                row_dict = {}
+                for i in range(len(cols_name)):
+                    if row[i] is not None:
+                        row_dict[cols_name[i]] = row[i]
+                data_formatted.append(row_dict)
+            json_object = json.dumps(data_formatted, indent=4)
+        db.close()
+        return json_object
 
 
 if __name__ == '__main__':
@@ -72,7 +68,19 @@ if __name__ == '__main__':
         exit(-1)
     if query == '':
         query = f'SELECT * FROM {table}'
-    if out_file == '':
-        out_file = 'output.json'
 
-    db2json(db_path, out_file, query)
+    try:
+        json_object = db2json(db_path, query)
+        if out_file == '':
+            print(json_object)
+        else:
+            try:
+                json_file = open(out_file, 'w+')
+            except Exception as e:
+                raise f'Could not open the JSON file: {e}'
+            else:
+                json_file.write(json_object)
+                json_file.close()
+    except Exception as e:
+        print(e)
+        exit(-1)
